@@ -1,0 +1,6 @@
+{
+  "name": "Ghi Chú",
+  "description": "Ứng dụng ghi chú với tiêu đề, mô tả, ghim ghi chú, bình luận và phản hồi hỗ trợ ghim và phân trang tải bình luận trước.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

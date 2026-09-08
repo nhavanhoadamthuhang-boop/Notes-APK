@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Ghi Chú</string>
+    <string name="note_title_label">Tiêu đề ghi chú</string>
+    <string name="note_description_label">Mô tả ghi chú</string>
+    <string name="pin_note">Ghim ghi chú</string>
+    <string name="unpin_note">Bỏ ghim ghi chú</string>
+    <string name="pin_comment">Ghim bình luận</string>
+    <string name="unpin_comment">Bỏ ghim</string>
+    <string name="reply_action">Trả lời</string>
+    <string name="load_earlier_comments">Tải bình luận trước</string>
+    <string name="comment_placeholder">Nhập bình luận hoặc phản hồi...</string>
+    <string name="send">Gửi</string>
+    <string name="save_note">Lưu ghi chú</string>
+    <string name="delete_note">Xoá ghi chú</string>
+</resources>
