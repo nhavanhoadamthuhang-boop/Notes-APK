@@ -746,9 +746,9 @@ private fun StorePackageCard(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "${numberFormatter.format(tier.diamondPrice)} Kim Cương",
+                            text = "Chi phí: ${numberFormatter.format(tier.diamondPrice)} 💎",
                             style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Bold,
                             color = accentColor
                         )
                     }
@@ -784,6 +784,18 @@ private fun StorePackageCard(
                     .padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(Icons.Default.Diamond, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
+                    Text(
+                        text = "Chi phí gói: ${numberFormatter.format(tier.diamondPrice)} Kim Cương (💎)",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)

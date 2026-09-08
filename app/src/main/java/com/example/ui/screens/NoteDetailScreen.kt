@@ -104,7 +104,8 @@ import com.example.ui.util.DateUtils
 @Composable
 fun NoteDetailScreen(
     viewModel: NotesViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isEmbeddedInSplitPane: Boolean = false
 ) {
     val note by viewModel.selectedNote.collectAsStateWithLifecycle()
     val commentsState by viewModel.commentsUiState.collectAsStateWithLifecycle()
@@ -169,8 +170,8 @@ fun NoteDetailScreen(
                         modifier = Modifier.testTag("back_button")
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Quay lại"
+                            imageVector = if (isEmbeddedInSplitPane) Icons.Default.Close else Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = if (isEmbeddedInSplitPane) "Đóng ghi chú" else "Quay lại"
                         )
                     }
                 },

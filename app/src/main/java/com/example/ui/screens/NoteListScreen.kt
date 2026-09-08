@@ -17,8 +17,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -107,7 +112,8 @@ private val DEFAULT_SUGGESTED_CATEGORIES = listOf(
 @Composable
 fun NoteListScreen(
     viewModel: NotesViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isEmbeddedInSplitPane: Boolean = false
 ) {
     val (pinnedNotes, unpinnedNotes) = viewModel.filteredNotes.collectAsStateWithLifecycle().value
     val allNotes by viewModel.allNotes.collectAsStateWithLifecycle()
@@ -311,368 +317,362 @@ fun NoteListScreen(
             }
         }
     ) { innerPadding ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Search Box
-            Surface(
+            val isMultiColumn = maxWidth >= 520.dp && !isEmbeddedInSplitPane
+            val gridColumns = if (isMultiColumn) GridCells.Adaptive(minSize = 280.dp) else GridCells.Fixed(1)
+
+            LazyVerticalGrid(
+                columns = gridColumns,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                    .fillMaxSize()
+                    .testTag("notes_list"),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { viewModel.updateSearchQuery(it) },
-                    placeholder = { 
-                        Text(
-                            "Tìm theo tiêu đề, mô tả, thẻ #nhãn...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        ) 
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Tìm kiếm ghi chú",
-                            tint = if (searchQuery.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    trailingIcon = {
-                        if (searchQuery.isNotBlank()) {
-                            IconButton(
-                                onClick = { viewModel.clearSearchQuery() },
-                                modifier = Modifier.testTag("clear_search_button")
-                            ) {
-                                Icon(
-                                    Icons.Default.Clear,
-                                    contentDescription = "Xoá nội dung tìm kiếm",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("search_note_input"),
-                    shape = RoundedCornerShape(24.dp),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                    )
-                )
-            }
-
-            // Visual Daily Streak & Mini-Calendar Progress Banner
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            ) {
-                StreakCalendarProgressBar(
-                    streakState = streakState,
-                    onClick = { showStreakDialog = true }
-                )
-            }
-
-            // Diamond Reward & Limits Progress Card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 3.dp)
-            ) {
-                DiamondProgressCard(
-                    rewardState = rewardState,
-                    onClick = { showDiamondGoalDialog = true },
-                    onOpenStore = { showDiamondStoreDialog = true }
-                )
-            }
-
-            // Note Activity Trends Line Chart Banner
-            AnimatedVisibility(
-                visible = showActivityTrendsCard,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                ) {
-                    ActivityTrendCard(
-                        stats = activityStats
-                    )
-                }
-            }
-
-            // Category / Folder Filter Chips Row
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .testTag("category_filter_row"),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Quick Sort Order Toggle Chip
-                item(key = "sort_order_chip") {
-                    FilterChip(
-                        selected = true,
-                        onClick = { viewModel.toggleSortOrder() },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = if (sortOrder == NoteSortOrder.NEWEST_FIRST) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                contentDescription = null,
-                                modifier = Modifier.size(15.dp)
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = if (sortOrder == NoteSortOrder.NEWEST_FIRST) "Mới nhất" else "Cũ nhất",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        },
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.testTag("filter_chip_sort_toggle"),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            selectedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                }
-
-                // "Tất cả" Chip
-                item(key = "category_all") {
-                    val isAllSelected = selectedCategory == null
-                    FilterChip(
-                        selected = isAllSelected,
-                        onClick = { viewModel.clearCategoryFilter() },
-                        label = { Text("Tất cả (${allNotes.size})") },
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.testTag("filter_chip_all_categories"),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    )
-                }
-
-                // Category Chips
-                items(displayCategories, key = { "cat_$it" }) { cat ->
-                    val isSelected = selectedCategory.equals(cat, ignoreCase = true)
-                    val count = allNotes.count { it.category.equals(cat, ignoreCase = true) }
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { viewModel.selectCategory(cat) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Folder,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        },
-                        label = {
-                            Text(if (count > 0) "$cat ($count)" else cat)
-                        },
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.testTag("filter_chip_category_$cat"),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    )
-                }
-            }
-
-            // Tag Filter Chips Row (if any tags exist)
-            if (activeTags.isNotEmpty()) {
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp)
-                        .testTag("tag_filter_row"),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    items(activeTags, key = { "tag_$it" }) { tag ->
-                        val isSelected = selectedTag.equals(tag, ignoreCase = true)
-                        val count = allNotes.count { note -> note.tagList.any { it.equals(tag, ignoreCase = true) } }
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { viewModel.selectTag(tag) },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Outlined.Label,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            },
-                            label = {
-                                Text("#$tag ($count)", fontSize = 12.sp)
-                            },
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.testTag("filter_chip_tag_$tag"),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        )
-                    }
-                }
-            }
-
-            // Real-time Search & Filter Status Banner
-            AnimatedVisibility(
-                visible = isAnyFilterActive,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                ) {
-                    Row(
+                // 1. Search Box Header Item
+                item(key = "hdr_search", span = { GridItemSpan(maxLineSpan) }) {
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(vertical = 2.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.FilterList,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp)
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { viewModel.updateSearchQuery(it) },
+                            placeholder = {
+                                Text(
+                                    "Tìm theo tiêu đề, mô tả, thẻ #nhãn...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Tìm kiếm ghi chú",
+                                    tint = if (searchQuery.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            trailingIcon = {
+                                if (searchQuery.isNotBlank()) {
+                                    IconButton(
+                                        onClick = { viewModel.clearSearchQuery() },
+                                        modifier = Modifier.testTag("clear_search_button")
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Clear,
+                                            contentDescription = "Xoá nội dung tìm kiếm",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("search_note_input"),
+                            shape = RoundedCornerShape(24.dp),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                             )
-                            val filterSummary = buildString {
-                                append("Đang lọc: $totalNotesCount kết quả")
-                                if (selectedCategory != null) append(" • Thư mục: '$selectedCategory'")
-                                if (selectedTag != null) append(" • Thẻ: '#$selectedTag'")
-                                if (searchQuery.isNotBlank()) append(" • Từ khóa: '$searchQuery'")
-                            }
-                            Text(
-                                text = filterSummary,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                color = if (totalNotesCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                                maxLines = 1
+                        )
+                    }
+                }
+
+                // 2. Daily Streak Banner
+                item(key = "hdr_streak", span = { GridItemSpan(maxLineSpan) }) {
+                    StreakCalendarProgressBar(
+                        streakState = streakState,
+                        onClick = { showStreakDialog = true }
+                    )
+                }
+
+                // 3. Diamond Reward Progress Card
+                item(key = "hdr_diamond", span = { GridItemSpan(maxLineSpan) }) {
+                    DiamondProgressCard(
+                        rewardState = rewardState,
+                        onClick = { showDiamondGoalDialog = true },
+                        onOpenStore = { showDiamondStoreDialog = true }
+                    )
+                }
+
+                // 4. Activity Trends Line Chart Banner
+                item(key = "hdr_trends", span = { GridItemSpan(maxLineSpan) }) {
+                    AnimatedVisibility(
+                        visible = showActivityTrendsCard,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        ActivityTrendCard(
+                            stats = activityStats
+                        )
+                    }
+                }
+
+                // 5. Category Filter Chips Row
+                item(key = "hdr_categories", span = { GridItemSpan(maxLineSpan) }) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp)
+                            .testTag("category_filter_row"),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Quick Sort Order Toggle Chip
+                        item(key = "sort_order_chip") {
+                            FilterChip(
+                                selected = true,
+                                onClick = { viewModel.toggleSortOrder() },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = if (sortOrder == NoteSortOrder.NEWEST_FIRST) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = if (sortOrder == NoteSortOrder.NEWEST_FIRST) "Mới nhất" else "Cũ nhất",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                modifier = Modifier.testTag("filter_chip_sort_toggle"),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
                         }
 
-                        TextButton(
-                            onClick = { viewModel.clearAllFilters() },
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                            modifier = Modifier.testTag("clear_all_filters_button")
-                        ) {
-                            Text("Xoá bộ lọc", style = MaterialTheme.typography.labelSmall)
+                        // "Tất cả" Chip
+                        item(key = "category_all") {
+                            val isAllSelected = selectedCategory == null
+                            FilterChip(
+                                selected = isAllSelected,
+                                onClick = { viewModel.clearCategoryFilter() },
+                                label = { Text("Tất cả (${allNotes.size})") },
+                                shape = RoundedCornerShape(20.dp),
+                                modifier = Modifier.testTag("filter_chip_all_categories"),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            )
+                        }
+
+                        // Category Chips
+                        items(displayCategories, key = { "cat_$it" }) { cat ->
+                            val isSelected = selectedCategory.equals(cat, ignoreCase = true)
+                            val count = allNotes.count { it.category.equals(cat, ignoreCase = true) }
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { viewModel.selectCategory(cat) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Folder,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                },
+                                label = {
+                                    Text(if (count > 0) "$cat ($count)" else cat)
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                modifier = Modifier.testTag("filter_chip_category_$cat"),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            )
                         }
                     }
                 }
-            }
 
-            if (totalNotesCount == 0) {
-                // Empty state
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.size(80.dp)
+                // 6. Tag Filter Chips Row
+                if (activeTags.isNotEmpty()) {
+                    item(key = "hdr_tags", span = { GridItemSpan(maxLineSpan) }) {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("tag_filter_row"),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = if (isAnyFilterActive) Icons.Default.Search else Icons.Default.Description,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(40.dp)
+                            items(activeTags, key = { "tag_$it" }) { tag ->
+                                val isSelected = selectedTag.equals(tag, ignoreCase = true)
+                                val count = allNotes.count { note -> note.tagList.any { it.equals(tag, ignoreCase = true) } }
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { viewModel.selectTag(tag) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Label,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    },
+                                    label = {
+                                        Text("#$tag ($count)", fontSize = 12.sp)
+                                    },
+                                    shape = RoundedCornerShape(16.dp),
+                                    modifier = Modifier.testTag("filter_chip_tag_$tag"),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
                                 )
                             }
                         }
+                    }
+                }
 
-                        Text(
-                            text = if (isAnyFilterActive) "Không tìm thấy ghi chú phù hợp" else "Chưa có ghi chú nào",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        val emptyMessage = when {
-                            selectedCategory != null && selectedTag != null ->
-                                "Không có ghi chú nào trong thư mục \"$selectedCategory\" có gắn thẻ \"#$selectedTag\"."
-                            selectedCategory != null ->
-                                "Chưa có ghi chú nào trong thư mục \"$selectedCategory\"."
-                            selectedTag != null ->
-                                "Chưa có ghi chú nào được gắn thẻ \"#$selectedTag\"."
-                            searchQuery.isNotBlank() ->
-                                "Không tìm thấy ghi chú nào khớp với từ khóa \"$searchQuery\"."
-                            else ->
-                                "Hãy bấm nút 'Tạo ghi chú' để thêm tiêu đề ghi chú, mô tả, thư mục, thẻ nhãn và bắt đầu thảo luận."
-                        }
-
-                        Text(
-                            text = emptyMessage,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        if (!isAnyFilterActive) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Button(
-                                onClick = { viewModel.startCreateNote() },
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.testTag("btn_empty_create_note")
+                // 7. Active Filter Status Banner
+                if (isAnyFilterActive) {
+                    item(key = "hdr_filter_banner", span = { GridItemSpan(maxLineSpan) }) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Tạo ghi chú mới")
-                            }
-                        } else {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedButton(
-                                onClick = { viewModel.clearAllFilters() },
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.testTag("btn_reset_all_filters")
-                            ) {
-                                Icon(Icons.Default.Clear, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Xoá tất cả bộ lọc")
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.FilterList,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    val filterSummary = buildString {
+                                        append("Đang lọc: $totalNotesCount kết quả")
+                                        if (selectedCategory != null) append(" • Thư mục: '$selectedCategory'")
+                                        if (selectedTag != null) append(" • Thẻ: '#$selectedTag'")
+                                        if (searchQuery.isNotBlank()) append(" • Từ khóa: '$searchQuery'")
+                                    }
+                                    Text(
+                                        text = filterSummary,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (totalNotesCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                        maxLines = 1
+                                    )
+                                }
+
+                                TextButton(
+                                    onClick = { viewModel.clearAllFilters() },
+                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                                    modifier = Modifier.testTag("clear_all_filters_button")
+                                ) {
+                                    Text("Xoá bộ lọc", style = MaterialTheme.typography.labelSmall)
+                                }
                             }
                         }
                     }
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .testTag("notes_list"),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Pinned Section
+
+                // 8. Empty State OR Notes List
+                if (totalNotesCount == 0) {
+                    item(key = "hdr_empty_state", span = { GridItemSpan(maxLineSpan) }) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 36.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier.size(80.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = if (isAnyFilterActive) Icons.Default.Search else Icons.Default.Description,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(40.dp)
+                                        )
+                                    }
+                                }
+
+                                Text(
+                                    text = if (isAnyFilterActive) "Không tìm thấy ghi chú phù hợp" else "Chưa có ghi chú nào",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+
+                                val emptyMessage = when {
+                                    selectedCategory != null && selectedTag != null ->
+                                        "Không có ghi chú nào trong thư mục \"$selectedCategory\" có gắn thẻ \"#$selectedTag\"."
+                                    selectedCategory != null ->
+                                        "Chưa có ghi chú nào trong thư mục \"$selectedCategory\"."
+                                    selectedTag != null ->
+                                        "Chưa có ghi chú nào được gắn thẻ \"#$selectedTag\"."
+                                    searchQuery.isNotBlank() ->
+                                        "Không tìm thấy ghi chú nào khớp với từ khóa \"$searchQuery\"."
+                                    else ->
+                                        "Hãy bấm nút 'Tạo ghi chú' để thêm tiêu đề ghi chú, mô tả, thư mục, thẻ nhãn và bắt đầu thảo luận."
+                                }
+
+                                Text(
+                                    text = emptyMessage,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
+                                if (!isAnyFilterActive) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = { viewModel.startCreateNote() },
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.testTag("btn_empty_create_note")
+                                    ) {
+                                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Tạo ghi chú mới")
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    OutlinedButton(
+                                        onClick = { viewModel.clearAllFilters() },
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.testTag("btn_reset_all_filters")
+                                    ) {
+                                        Icon(Icons.Default.Clear, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Xoá tất cả bộ lọc")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Pinned Section Header & Notes
                     if (pinnedNotes.isNotEmpty()) {
-                        item(key = "pinned_section_header") {
+                        item(key = "pinned_section_header", span = { GridItemSpan(maxLineSpan) }) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -707,9 +707,9 @@ fun NoteListScreen(
                         }
                     }
 
-                    // Other Notes Section
+                    // Unpinned Section Header & Notes
                     if (unpinnedNotes.isNotEmpty()) {
-                        item(key = "unpinned_section_header") {
+                        item(key = "unpinned_section_header", span = { GridItemSpan(maxLineSpan) }) {
                             val headerTitle = if (pinnedNotes.isNotEmpty()) "GHI CHÚ KHÁC" else "TẤT CẢ GHI CHÚ"
                             Text(
                                 text = "$headerTitle (${unpinnedNotes.size})",

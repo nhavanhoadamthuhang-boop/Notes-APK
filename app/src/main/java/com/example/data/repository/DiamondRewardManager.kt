@@ -29,21 +29,21 @@ enum class StorePackageTier(
     ),
     PACKAGE_1(
         id = 1,
-        title = "Gói Nạp 1",
+        title = "Gói Nạp VIP 1 (8.000 💎)",
         diamondPrice = 8_000,
         maxCommentsPerMinute = 64,
         maxDailyNotes = 12_000,
         badgeLabel = "VIP 1 (64 cmt/p • 12k notes/ngày)",
-        description = "Giới hạn 64 bình luận và phản hồi/phút, Giới hạn 12.000 ghi chú/ngày"
+        description = "Chi phí: 8.000 💎 • Giới hạn 64 cmt/phút, 12.000 ghi chú/ngày"
     ),
     PACKAGE_2(
         id = 2,
-        title = "Gói Nạp 2",
+        title = "Gói Nạp VIP 2 (12.000 💎)",
         diamondPrice = 12_000,
         maxCommentsPerMinute = 96,
         maxDailyNotes = 16_000,
         badgeLabel = "VIP 2 (96 cmt/p • 16k notes/ngày)",
-        description = "Giới hạn 96 bình luận và phản hồi/phút, Giới hạn 16.000 ghi chú/ngày"
+        description = "Chi phí: 12.000 💎 • Giới hạn 96 cmt/phút, 16.000 ghi chú/ngày"
     );
 
     companion object {
