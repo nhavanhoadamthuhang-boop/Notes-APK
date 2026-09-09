@@ -81,14 +81,19 @@ fun NotesApp(viewModel: NotesViewModel = viewModel()) {
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val isTabletSplitPane = maxWidth >= 800.dp
+        val isTabletSplitPane = maxWidth >= 600.dp
+        val listPaneWidth = when {
+            maxWidth >= 1000.dp -> 400.dp
+            maxWidth >= 720.dp -> 360.dp
+            else -> 320.dp
+        }
 
         if (isTabletSplitPane) {
             // Adaptive Tablet Master-Detail Layout (Side-by-side)
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(
                     modifier = Modifier
-                        .width(380.dp)
+                        .width(listPaneWidth)
                         .fillMaxHeight()
                 ) {
                     NoteListScreen(

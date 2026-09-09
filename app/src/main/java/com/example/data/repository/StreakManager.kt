@@ -72,12 +72,12 @@ class StreakManager(context: Context) {
         }.reversed()
 
         val levelName = when {
-            currentStreak >= 30 -> "Huyền Thoại Ghi Chú 👑"
-            currentStreak >= 14 -> "Bậc Thầy Kiên Trì 🌟"
-            currentStreak >= 7 -> "Chuyên Gia Thói Quản 🏆"
-            currentStreak >= 3 -> "Ngọn Lửa Bùng Cháy 🔥"
-            currentStreak >= 1 -> "Khởi Đầu Tốt Đẹp ⚡"
-            else -> "Chưa Khởi Động 🌱"
+            currentStreak >= 30 -> "Huyền Thoại Ghi Chú"
+            currentStreak >= 14 -> "Bậc Thầy Kiên Trì"
+            currentStreak >= 7 -> "Chuyên Gia Thói Quản"
+            currentStreak >= 3 -> "Ngọn Lửa Bùng Cháy"
+            currentStreak >= 1 -> "Khởi Đầu Tốt Đẹp"
+            else -> "Chưa Khởi Động"
         }
 
         val nextMilestone = when {

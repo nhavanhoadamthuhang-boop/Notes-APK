@@ -131,7 +131,7 @@ fun DiamondTopBarBadge(
                 label = "diamond_counter_anim"
             ) { count ->
                 Text(
-                    text = "${numberFormatter.format(count)} 💎",
+                    text = "${numberFormatter.format(count)} kim cương",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -244,7 +244,7 @@ fun DiamondProgressCard(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                text = "${numberFormatter.format(rewardState.totalDiamonds)} 💎",
+                                text = "${numberFormatter.format(rewardState.totalDiamonds)} kim cương",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -265,7 +265,7 @@ fun DiamondProgressCard(
                             }
                         }
                         Text(
-                            text = "+1 💎/ghi chú & cmt • Điểm danh: +500 💎",
+                            text = "+1 KC/ghi chú & cmt • Điểm danh: +500 KC",
                             style = MaterialTheme.typography.bodySmall,
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -325,7 +325,7 @@ fun DiamondProgressCard(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "Điểm danh hôm nay để nhận +500 💎!",
+                                text = "Điểm danh hôm nay để nhận +500 kim cương!",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -487,7 +487,7 @@ fun DailyCheckInCard(
                             color = if (hasCheckedIn) Color(0xFFC8E6C9) else DiamondGold
                         ) {
                             Text(
-                                text = "+500 💎",
+                                text = "+500 KC",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = if (hasCheckedIn) Color(0xFF1B5E20) else Color.White,
@@ -500,7 +500,7 @@ fun DailyCheckInCard(
 
                     Text(
                         text = if (hasCheckedIn)
-                            "Bạn đã điểm danh hôm nay! Quay lại vào ngày mai để nhận thêm 500 💎."
+                            "Bạn đã điểm danh hôm nay! Quay lại vào ngày mai để nhận thêm 500 kim cương."
                         else
                             "Bấm điểm danh để nhận ngay 500 viên kim cương miễn phí!",
                         style = MaterialTheme.typography.bodySmall,
@@ -635,14 +635,14 @@ fun DiamondGoalDialog(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            text = "${numberFormatter.format(rewardState.totalDiamonds)} 💎",
+                            text = "${numberFormatter.format(rewardState.totalDiamonds)} kim cương",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
 
                         Text(
-                            text = "Tiến độ: $progressPercent% mục tiêu 8.000 💎",
+                            text = "Tiến độ: $progressPercent% mục tiêu 8.000 kim cương",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -806,7 +806,7 @@ fun DiamondStoreDialog(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
-                                text = "${numberFormatter.format(rewardState.totalDiamonds)} 💎",
+                                text = "${numberFormatter.format(rewardState.totalDiamonds)} kim cương",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -878,21 +878,21 @@ fun DiamondStoreDialog(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text("+1.000 💎", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("+1.000 KC", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     OutlinedButton(
                         onClick = { onTopUp(8000) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text("+8.000 💎", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("+8.000 KC", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     OutlinedButton(
                         onClick = { onTopUp(12000) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text("+12.000 💎", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("+12.000 KC", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -968,7 +968,7 @@ private fun StorePackageCard(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Chi phí: ${numberFormatter.format(tier.diamondPrice)} 💎",
+                            text = "Chi phí: ${numberFormatter.format(tier.diamondPrice)} kim cương",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
                             color = accentColor
@@ -1012,7 +1012,7 @@ private fun StorePackageCard(
                 ) {
                     Icon(Icons.Default.Diamond, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
                     Text(
-                        text = "Chi phí gói: ${numberFormatter.format(tier.diamondPrice)} Kim Cương (💎)",
+                        text = "Chi phí gói: ${numberFormatter.format(tier.diamondPrice)} Kim Cương",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
                         color = accentColor
@@ -1066,7 +1066,7 @@ private fun StorePackageCard(
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = accentColor)
                         ) {
-                            Text("Dùng ${numberFormatter.format(tier.diamondPrice)} 💎 kích hoạt", fontSize = 12.sp)
+                            Text("Dùng ${numberFormatter.format(tier.diamondPrice)} kim cương kích hoạt", fontSize = 12.sp)
                         }
                     } else {
                         Button(
@@ -1077,7 +1077,7 @@ private fun StorePackageCard(
                         ) {
                             Icon(Icons.Default.FlashOn, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Nạp & Kích hoạt (+${numberFormatter.format(tier.diamondPrice)} 💎)", fontSize = 11.sp)
+                            Text("Nạp & Kích hoạt (+${numberFormatter.format(tier.diamondPrice)} KC)", fontSize = 11.sp)
                         }
                     }
                 }

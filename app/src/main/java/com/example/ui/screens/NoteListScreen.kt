@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -51,6 +52,7 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,6 +62,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -68,10 +71,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,14 +99,17 @@ import com.example.ui.components.DiamondProgressCard
 import com.example.ui.components.DiamondStoreDialog
 import com.example.ui.components.DiamondTopBarBadge
 import com.example.ui.components.JsonImportExportDialog
+import com.example.ui.components.MainMenuDrawerContent
 import com.example.ui.components.NoteCard
 import com.example.ui.components.NoteEditorDialog
 import com.example.ui.components.SettingsDialog
 import com.example.ui.components.StreakBadge
 import com.example.ui.components.StreakCalendarProgressBar
 import com.example.ui.components.StreakDialog
+import com.example.ui.components.SwipeToDeleteItem
 import com.example.ui.components.TrashManagerDialog
 import com.example.ui.theme.PinGold
+import kotlinx.coroutines.launch
 
 private val DEFAULT_SUGGESTED_CATEGORIES = listOf(
     "Công việc",
@@ -156,18 +164,68 @@ fun NoteListScreen(
 
     val isAnyFilterActive = searchQuery.isNotBlank() || selectedCategory != null || selectedTag != null
     val totalNotesCount = pinnedNotes.size + unpinnedNotes.size
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            CenterAlignedTopAppBar(
-                navigationIcon = {
-                    DiamondTopBarBadge(
-                        rewardState = rewardState,
-                        onClick = { showDiamondStoreDialog = true },
-                        modifier = Modifier.padding(start = 12.dp)
-                    )
-                },
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            MainMenuDrawerContent(
+                totalNotesCount = totalNotesCount,
+                pinnedNotesCount = pinnedNotes.size,
+                totalTrashCount = totalTrashCount,
+                categories = displayCategories,
+                selectedCategory = selectedCategory,
+                onSelectCategory = { cat -> viewModel.selectCategory(cat) },
+                rewardState = rewardState,
+                streakState = streakState,
+                themeMode = themeMode,
+                isTrendsVisible = showActivityTrendsCard,
+                onToggleTrends = { showActivityTrendsCard = !showActivityTrendsCard },
+                onToggleTheme = { viewModel.toggleTheme() },
+                onOpenCreateNote = { viewModel.startCreateNote() },
+                onOpenTrash = { showTrashDialog = true },
+                onOpenStore = { showDiamondStoreDialog = true },
+                onOpenStreak = { showStreakDialog = true },
+                onClaimDailyReward = { viewModel.claimDailyCheckIn() },
+                onOpenJsonBackup = { showImportExportDialog = true },
+                onOpenSettings = { showSettingsDialog = true },
+                onCloseDrawer = {
+                    coroutineScope.launch { drawerState.close() }
+                }
+            )
+        }
+    ) {
+        Scaffold(
+            modifier = modifier.fillMaxSize(),
+            topBar = {
+                CenterAlignedTopAppBar(
+                    navigationIcon = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(start = 4.dp)
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                                    }
+                                },
+                                modifier = Modifier.testTag("btn_main_menu")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Trình đơn chính (Menu)",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            DiamondTopBarBadge(
+                                rewardState = rewardState,
+                                onClick = { showDiamondStoreDialog = true },
+                                modifier = Modifier.padding(start = 2.dp)
+                            )
+                        }
+                    },
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -742,15 +800,20 @@ fun NoteListScreen(
                         }
 
                         items(pinnedNotes, key = { "pinned_${it.id}" }) { note ->
-                            NoteCard(
-                                note = note,
-                                onClick = { viewModel.selectNote(note.id) },
-                                onTogglePin = { viewModel.toggleNotePinned(note) },
-                                onEdit = { viewModel.startEditNote(note) },
+                            SwipeToDeleteItem(
                                 onDelete = { noteToDelete = note },
-                                onCategoryClick = { viewModel.selectCategory(it) },
-                                onTagClick = { viewModel.selectTag(it) }
-                            )
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                NoteCard(
+                                    note = note,
+                                    onClick = { viewModel.selectNote(note.id) },
+                                    onTogglePin = { viewModel.toggleNotePinned(note) },
+                                    onEdit = { viewModel.startEditNote(note) },
+                                    onDelete = { noteToDelete = note },
+                                    onCategoryClick = { viewModel.selectCategory(it) },
+                                    onTagClick = { viewModel.selectTag(it) }
+                                )
+                            }
                         }
                     }
 
@@ -769,15 +832,20 @@ fun NoteListScreen(
                         }
 
                         items(unpinnedNotes, key = { "unpinned_${it.id}" }) { note ->
-                            NoteCard(
-                                note = note,
-                                onClick = { viewModel.selectNote(note.id) },
-                                onTogglePin = { viewModel.toggleNotePinned(note) },
-                                onEdit = { viewModel.startEditNote(note) },
+                            SwipeToDeleteItem(
                                 onDelete = { noteToDelete = note },
-                                onCategoryClick = { viewModel.selectCategory(it) },
-                                onTagClick = { viewModel.selectTag(it) }
-                            )
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                NoteCard(
+                                    note = note,
+                                    onClick = { viewModel.selectNote(note.id) },
+                                    onTogglePin = { viewModel.toggleNotePinned(note) },
+                                    onEdit = { viewModel.startEditNote(note) },
+                                    onDelete = { noteToDelete = note },
+                                    onCategoryClick = { viewModel.selectCategory(it) },
+                                    onTagClick = { viewModel.selectTag(it) }
+                                )
+                            }
                         }
                     }
                 }
@@ -925,4 +993,5 @@ fun NoteListScreen(
             }
         )
     }
+}
 }

@@ -457,7 +457,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 repository.insertComment(
                     noteId = noteId,
                     content = content.trim(),
-                    authorName = authorName.ifBlank { "Bạn" },
+                    authorName = authorName.ifBlank { "Đàm Tường Quân" },
                     parentId = parentId,
                     replyToAuthor = replying.authorName
                 )
@@ -465,7 +465,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 repository.insertComment(
                     noteId = noteId,
                     content = content.trim(),
-                    authorName = authorName.ifBlank { "Bạn" },
+                    authorName = authorName.ifBlank { "Đàm Tường Quân" },
                     parentId = null,
                     replyToAuthor = null
                 )
@@ -555,16 +555,16 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun claimDailyCheckIn() {
         val claimedAmount = rewardManager.claimDailyCheckInReward()
         if (claimedAmount > 0) {
-            _importExportMessage.value = "🎉 Điểm danh thành công! Bạn nhận được +$claimedAmount 💎 kim cương!"
+            _importExportMessage.value = "Điểm danh thành công! Bạn nhận được +$claimedAmount kim cương!"
             recordInteraction()
         } else {
-            _rateLimitWarning.value = "Bạn đã điểm danh hôm nay rồi! Hãy quay lại vào ngày mai để nhận thêm 500 💎 kim cương nhé."
+            _rateLimitWarning.value = "Bạn đã điểm danh hôm nay rồi! Hãy quay lại vào ngày mai để nhận thêm 500 kim cương nhé."
         }
     }
 
     fun topUpDiamonds(amount: Int) {
         rewardManager.topUpDiamonds(amount)
-        _importExportMessage.value = "Đã nạp thành công $amount 💎 vào tài khoản!"
+        _importExportMessage.value = "Đã nạp thành công $amount kim cương vào tài khoản!"
     }
 
     fun activateStorePackage(tier: StorePackageTier): Boolean {
@@ -572,7 +572,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         if (success) {
             _importExportMessage.value = "Kích hoạt thành công ${tier.title}! Giới hạn mới: ${tier.maxCommentsPerMinute} cmt/phút, ${tier.maxDailyNotes} ghi chú/ngày."
         } else {
-            _rateLimitWarning.value = "Bạn cần ${tier.diamondPrice} 💎 để kích hoạt ${tier.title}. Vui lòng nạp thêm kim cương hoặc tích lũy thêm!"
+            _rateLimitWarning.value = "Bạn cần ${tier.diamondPrice} kim cương để kích hoạt ${tier.title}. Vui lòng nạp thêm kim cương hoặc tích lũy thêm!"
         }
         return success
     }

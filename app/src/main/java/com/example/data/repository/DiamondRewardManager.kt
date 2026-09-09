@@ -31,23 +31,23 @@ enum class StorePackageTier(
     ),
     PACKAGE_1(
         id = 1,
-        title = "Gói Nạp 1 (8.000 💎)",
+        title = "Gói Nạp 1 (8.000 Kim Cương)",
         diamondPrice = 8_000,
         maxCommentsPerMinute = 64,
         maxDailyNotes = 12_000,
         trashRetentionDays = 120,
         badgeLabel = "Gói 1 (Thùng rác 120 ngày)",
-        description = "Chi phí: 8.000 💎 • Giới hạn 64 cmt/phút, 12.000 ghi chú/ngày • Theo dõi thùng rác đã xóa gần đây trong vòng 120 ngày trước khi bị xóa vĩnh viễn"
+        description = "Chi phí: 8.000 Kim Cương • Giới hạn 64 cmt/phút, 12.000 ghi chú/ngày • Theo dõi thùng rác đã xóa gần đây trong vòng 120 ngày trước khi bị xóa vĩnh viễn"
     ),
     PACKAGE_2(
         id = 2,
-        title = "Gói Nạp 2 (12.000 💎)",
+        title = "Gói Nạp 2 (12.000 Kim Cương)",
         diamondPrice = 12_000,
         maxCommentsPerMinute = 96,
         maxDailyNotes = 16_000,
         trashRetentionDays = 180,
         badgeLabel = "Gói 2 (Thùng rác 180 ngày)",
-        description = "Chi phí: 12.000 💎 • Giới hạn 96 cmt/phút, 16.000 ghi chú/ngày • Theo dõi thùng rác đã xóa gần đây trong vòng 180 ngày trước khi bị xóa vĩnh viễn"
+        description = "Chi phí: 12.000 Kim Cương • Giới hạn 96 cmt/phút, 16.000 ghi chú/ngày • Theo dõi thùng rác đã xóa gần đây trong vòng 180 ngày trước khi bị xóa vĩnh viễn"
     );
 
     companion object {

@@ -56,68 +56,79 @@ fun CommentThreadItem(
     onDeleteReply: (CommentEntity) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag("comment_thread_${thread.comment.id}"),
+    SwipeToDeleteItem(
+        onDelete = { onDeleteComment(thread.comment) },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (thread.comment.isPinned) {
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
-        ),
-        border = BorderStroke(
-            width = if (thread.comment.isPinned) 1.5.dp else 1.dp,
-            color = if (thread.comment.isPinned) PinGold.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (thread.comment.isPinned) 1.5.dp else 0.5.dp)
+        modifier = modifier
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            // Main Root Comment
-            SingleCommentContent(
-                comment = thread.comment,
-                isReply = false,
-                onReply = { onReplyToComment(thread.comment) },
-                onTogglePin = { onTogglePinComment(thread.comment) },
-                onEdit = { onEditComment(thread.comment) },
-                onDelete = { onDeleteComment(thread.comment) }
-            )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("comment_thread_${thread.comment.id}"),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (thread.comment.isPinned) {
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                } else {
+                    MaterialTheme.colorScheme.surface
+                }
+            ),
+            border = BorderStroke(
+                width = if (thread.comment.isPinned) 1.5.dp else 1.dp,
+                color = if (thread.comment.isPinned) PinGold.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = if (thread.comment.isPinned) 1.5.dp else 0.5.dp)
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                // Main Root Comment
+                SingleCommentContent(
+                    comment = thread.comment,
+                    isReply = false,
+                    onReply = { onReplyToComment(thread.comment) },
+                    onTogglePin = { onTogglePinComment(thread.comment) },
+                    onEdit = { onEditComment(thread.comment) },
+                    onDelete = { onDeleteComment(thread.comment) }
+                )
 
-            // Nested Replies if any
-            if (thread.replies.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(10.dp))
+                // Nested Replies if any
+                if (thread.replies.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
-                ) {
-                    // Vertical thread indent guide line
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .padding(start = 14.dp, end = 12.dp)
-                            .width(2.5.dp)
-                            .fillMaxHeight()
-                            .background(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                                shape = RoundedCornerShape(1.dp)
-                            )
-                    )
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min)
                     ) {
-                        thread.replies.forEach { reply ->
-                            ReplyContent(
-                                reply = reply,
-                                onReply = { onReplyToComment(reply) },
-                                onTogglePin = { onTogglePinComment(reply) },
-                                onEdit = { onEditReply(reply) },
-                                onDelete = { onDeleteReply(reply) }
-                            )
+                        // Vertical thread indent guide line
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 14.dp, end = 12.dp)
+                                .width(2.5.dp)
+                                .fillMaxHeight()
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                                    shape = RoundedCornerShape(1.dp)
+                                )
+                        )
+
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            thread.replies.forEach { reply ->
+                                SwipeToDeleteItem(
+                                    onDelete = { onDeleteReply(reply) },
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    ReplyContent(
+                                        reply = reply,
+                                        onReply = { onReplyToComment(reply) },
+                                        onTogglePin = { onTogglePinComment(reply) },
+                                        onEdit = { onEditReply(reply) },
+                                        onDelete = { onDeleteReply(reply) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }

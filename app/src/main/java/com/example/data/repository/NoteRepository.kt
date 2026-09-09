@@ -97,14 +97,14 @@ class NoteRepository(
     suspend fun insertComment(
         noteId: Long,
         content: String,
-        authorName: String = "Người dùng",
+        authorName: String = "Đàm Tường Quân",
         parentId: Long? = null,
         replyToAuthor: String? = null
     ): Long {
         val comment = CommentEntity(
             noteId = noteId,
             parentId = parentId,
-            authorName = authorName.ifBlank { "Người dùng" },
+            authorName = authorName.ifBlank { "Đàm Tường Quân" },
             replyToAuthor = replyToAuthor,
             content = content.trim(),
             isPinned = false,
@@ -121,7 +121,7 @@ class NoteRepository(
         commentDao.updateCommentContentAndAuthor(
             id = id,
             content = content.trim(),
-            authorName = authorName.ifBlank { "Bạn" }
+            authorName = authorName.ifBlank { "Đàm Tường Quân" }
         )
     }
 
@@ -201,7 +201,7 @@ class NoteRepository(
                 val commentEntity = CommentEntity(
                     noteId = newNoteId,
                     parentId = null,
-                    authorName = rootComment.authorName.ifBlank { "Người dùng" },
+                    authorName = rootComment.authorName.ifBlank { "Đàm Tường Quân" },
                     replyToAuthor = rootComment.replyToAuthor,
                     content = rootComment.content.trim(),
                     isPinned = rootComment.isPinned,
@@ -220,7 +220,7 @@ class NoteRepository(
                 val commentEntity = CommentEntity(
                     noteId = newNoteId,
                     parentId = remappedParentId, // If parent found in map, link properly; otherwise attaches to note
-                    authorName = reply.authorName.ifBlank { "Người dùng" },
+                    authorName = reply.authorName.ifBlank { "Đàm Tường Quân" },
                     replyToAuthor = reply.replyToAuthor,
                     content = reply.content.trim(),
                     isPinned = reply.isPinned,

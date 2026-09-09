@@ -124,7 +124,7 @@ fun NoteDetailScreen(
     val allNotes by viewModel.allNotes.collectAsStateWithLifecycle()
 
     var commentInput by remember { mutableStateOf("") }
-    var authorNameInput by remember { mutableStateOf("Bạn") }
+    var authorNameInput by remember { mutableStateOf("Đàm Tường Quân") }
     var showAuthorEditDialog by remember { mutableStateOf(false) }
     var showTrashDialog by remember { mutableStateOf(false) }
     var showDiamondGoalDialog by remember { mutableStateOf(false) }
@@ -361,7 +361,7 @@ fun NoteDetailScreen(
                                 modifier = Modifier.size(13.dp)
                             )
                             Text(
-                                text = "+1 💎 / bình luận & phản hồi",
+                                text = "+1 kim cương / bình luận & phản hồi",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -472,7 +472,7 @@ fun NoteDetailScreen(
                         IconButton(
                             onClick = {
                                 if (commentInput.isNotBlank()) {
-                                    val finalAuthorName = authorNameInput.trim().ifBlank { "Bạn" }
+                                    val finalAuthorName = authorNameInput.trim().ifBlank { "Đàm Tường Quân" }
                                     viewModel.addCommentOrReply(
                                         content = commentInput,
                                         authorName = finalAuthorName

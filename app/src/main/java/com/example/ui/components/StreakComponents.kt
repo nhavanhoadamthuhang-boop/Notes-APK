@@ -271,7 +271,7 @@ fun StreakDialog(
                     }
 
                     // =========================================================
-                    // 1.5 DAILY CHECK-IN REWARD CARD (+500 💎)
+                    // 1.5 DAILY CHECK-IN REWARD CARD (+500 Diamonds)
                     // =========================================================
                     item {
                         Surface(
@@ -303,7 +303,7 @@ fun StreakDialog(
                                     }
                                     Column {
                                         Text(
-                                            text = "Điểm Danh Mỗi Ngày: +500 💎",
+                                            text = "Điểm Danh Mỗi Ngày: +500 kim cương",
                                             style = MaterialTheme.typography.titleSmall,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -575,7 +575,7 @@ private fun MilestoneRow(
                 color = Color(0xFFE8F5E9)
             ) {
                 Text(
-                    text = "Đã đạt 🏆",
+                    text = "Đã đạt",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFF2E7D32),
                     fontWeight = FontWeight.Bold,
@@ -666,7 +666,7 @@ fun StreakCalendarProgressBar(
                 }
 
                 Text(
-                    text = if (currentStreak >= milestone) "Mục tiêu đạt! 🎉" else "Cột mốc: $milestone ngày",
+                    text = if (currentStreak >= milestone) "Mục tiêu đạt!" else "Cột mốc: $milestone ngày",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

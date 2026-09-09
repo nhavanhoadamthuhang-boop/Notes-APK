@@ -23,7 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Notes
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
@@ -314,21 +316,43 @@ fun ActivityTrendLineChartCanvas(
                     color = primaryColor,
                     modifier = Modifier.padding(horizontal = 4.dp)
                 ) {
-                    Text(
-                        text = "📌 ${currentSelected.label}: ${currentSelected.noteCount} ghi chú (${currentSelected.commentCount} bình luận)",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                    )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PushPin,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "${currentSelected.label}: ${currentSelected.noteCount} ghi chú (${currentSelected.commentCount} bình luận)",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 }
             } else {
-                Text(
-                    text = "💡 Chạm vào điểm trên biểu đồ để xem chi tiết",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = onSurfaceVariant.copy(alpha = 0.7f),
-                    fontSize = 11.sp
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lightbulb,
+                        contentDescription = null,
+                        tint = onSurfaceVariant.copy(alpha = 0.7f),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = "Chạm vào điểm trên biểu đồ để xem chi tiết",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = onSurfaceVariant.copy(alpha = 0.7f),
+                        fontSize = 11.sp
+                    )
+                }
             }
         }
 

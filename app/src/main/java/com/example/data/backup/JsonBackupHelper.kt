@@ -223,7 +223,7 @@ object JsonBackupHelper {
                 val commentObj = commentsArray.optJSONObject(j) ?: continue
                 val commentId = if (commentObj.has("id") && !commentObj.isNull("id")) commentObj.getLong("id") else null
                 val parentId = if (commentObj.has("parentId") && !commentObj.isNull("parentId")) commentObj.getLong("parentId") else null
-                val authorName = commentObj.optString("authorName", "Người dùng").ifBlank { "Người dùng" }
+                val authorName = commentObj.optString("authorName", "Đàm Tường Quân").ifBlank { "Đàm Tường Quân" }
                 val replyToAuthor = if (commentObj.has("replyToAuthor") && !commentObj.isNull("replyToAuthor")) {
                     commentObj.getString("replyToAuthor").ifBlank { null }
                 } else null

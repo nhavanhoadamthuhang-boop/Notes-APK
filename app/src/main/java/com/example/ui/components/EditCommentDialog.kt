@@ -104,7 +104,7 @@ fun EditCommentDialog(
             Button(
                 onClick = {
                     if (content.isNotBlank()) {
-                        onSave(content.trim(), authorName.trim().ifBlank { "Bạn" })
+                        onSave(content.trim(), authorName.trim().ifBlank { "Đàm Tường Quân" })
                     }
                 },
                 enabled = content.isNotBlank(),
