@@ -29,6 +29,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DataObject
@@ -43,13 +46,16 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.PushPin
 import com.example.data.repository.ThemeMode
+import com.example.ui.CommentSortOrder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -122,6 +128,7 @@ fun NoteDetailScreen(
     val trashNotes by viewModel.trashNotes.collectAsStateWithLifecycle()
     val trashComments by viewModel.trashComments.collectAsStateWithLifecycle()
     val allNotes by viewModel.allNotes.collectAsStateWithLifecycle()
+    val commentSortOrder by viewModel.commentSortOrder.collectAsStateWithLifecycle()
 
     var commentInput by remember { mutableStateOf("") }
     var authorNameInput by remember { mutableStateOf("Đàm Tường Quân") }
@@ -132,6 +139,7 @@ fun NoteDetailScreen(
     var showSettingsDialog by remember { mutableStateOf(false) }
     var showStreakDialog by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
+    var commentSortMenuExpanded by remember { mutableStateOf(false) }
 
     // Deletion confirmation states
     var showDeleteNoteConfirm by remember { mutableStateOf(false) }
@@ -747,20 +755,131 @@ fun NoteDetailScreen(
                             }
                         }
 
-                        // Info indicator about 200 items/page
+                        // Comment Sort Menu Dropdown Button
+                        Box {
+                            IconButton(
+                                onClick = { commentSortMenuExpanded = true },
+                                modifier = Modifier.testTag("btn_sort_comments")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.SwapVert,
+                                    contentDescription = "Sắp xếp bình luận",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = commentSortMenuExpanded,
+                                onDismissRequest = { commentSortMenuExpanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Mới nhất trước (Newest)") },
+                                    onClick = {
+                                        viewModel.setCommentSortOrder(CommentSortOrder.NEWEST_FIRST)
+                                        commentSortMenuExpanded = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowDownward,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        if (commentSortOrder == CommentSortOrder.NEWEST_FIRST) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "Đang chọn",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.testTag("menu_sort_comments_newest")
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Cũ nhất trước (Oldest)") },
+                                    onClick = {
+                                        viewModel.setCommentSortOrder(CommentSortOrder.OLDEST_FIRST)
+                                        commentSortMenuExpanded = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowUpward,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        if (commentSortOrder == CommentSortOrder.OLDEST_FIRST) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "Đang chọn",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.testTag("menu_sort_comments_oldest")
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Bảng chữ cái A-Z (Alphabetical)") },
+                                    onClick = {
+                                        viewModel.setCommentSortOrder(CommentSortOrder.ALPHABETICAL)
+                                        commentSortMenuExpanded = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.SortByAlpha,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        if (commentSortOrder == CommentSortOrder.ALPHABETICAL) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "Đang chọn",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.testTag("menu_sort_comments_alphabetical")
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (commentsState.totalCount > 0) {
+                            Text(
+                                text = "Đang hiển thị ${commentsState.displayedCount}/${commentsState.totalCount} bình luận (${when (commentSortOrder) {
+                                    CommentSortOrder.NEWEST_FIRST -> "Mới nhất"
+                                    CommentSortOrder.OLDEST_FIRST -> "Cũ nhất"
+                                    CommentSortOrder.ALPHABETICAL -> "A-Z"
+                                }})",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            )
+                        } else {
+                            Text(
+                                text = "Chưa có bình luận nào",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            )
+                        }
+
                         Text(
                             text = "200 mục/trang",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    if (commentsState.totalCount > 0) {
-                        Text(
-                            text = "Đang hiển thị ${commentsState.displayedCount} trong tổng số ${commentsState.totalCount} bình luận & phản hồi",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                            modifier = Modifier.padding(top = 4.dp)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
                     }
                 }

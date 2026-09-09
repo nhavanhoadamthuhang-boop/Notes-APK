@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.WbSunny
@@ -256,7 +257,7 @@ fun NoteListScreen(
                             onDismissRequest = { sortMenuExpanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Mới nhất trước (Newest first)") },
+                                text = { Text("Mới nhất trước (Newest)") },
                                 onClick = {
                                     viewModel.setSortOrder(NoteSortOrder.NEWEST_FIRST)
                                     sortMenuExpanded = false
@@ -281,7 +282,7 @@ fun NoteListScreen(
                                 modifier = Modifier.testTag("menu_sort_newest_first")
                             )
                             DropdownMenuItem(
-                                text = { Text("Cũ nhất trước (Oldest first)") },
+                                text = { Text("Cũ nhất trước (Oldest)") },
                                 onClick = {
                                     viewModel.setSortOrder(NoteSortOrder.OLDEST_FIRST)
                                     sortMenuExpanded = false
@@ -304,6 +305,31 @@ fun NoteListScreen(
                                     }
                                 },
                                 modifier = Modifier.testTag("menu_sort_oldest_first")
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Bảng chữ cái A-Z (Alphabetical)") },
+                                onClick = {
+                                    viewModel.setSortOrder(NoteSortOrder.ALPHABETICAL)
+                                    sortMenuExpanded = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.SortByAlpha,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (sortOrder == NoteSortOrder.ALPHABETICAL) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Đang chọn",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.testTag("menu_sort_alphabetical")
                             )
                         }
                     }
@@ -538,14 +564,22 @@ fun NoteListScreen(
                                 onClick = { viewModel.toggleSortOrder() },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = if (sortOrder == NoteSortOrder.NEWEST_FIRST) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                        imageVector = when (sortOrder) {
+                                            NoteSortOrder.NEWEST_FIRST -> Icons.Default.ArrowDownward
+                                            NoteSortOrder.OLDEST_FIRST -> Icons.Default.ArrowUpward
+                                            NoteSortOrder.ALPHABETICAL -> Icons.Default.SortByAlpha
+                                        },
                                         contentDescription = null,
                                         modifier = Modifier.size(15.dp)
                                     )
                                 },
                                 label = {
                                     Text(
-                                        text = if (sortOrder == NoteSortOrder.NEWEST_FIRST) "Mới nhất" else "Cũ nhất",
+                                        text = when (sortOrder) {
+                                            NoteSortOrder.NEWEST_FIRST -> "Mới nhất"
+                                            NoteSortOrder.OLDEST_FIRST -> "Cũ nhất"
+                                            NoteSortOrder.ALPHABETICAL -> "A-Z"
+                                        },
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Medium
                                     )

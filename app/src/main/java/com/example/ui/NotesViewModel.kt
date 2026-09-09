@@ -48,8 +48,15 @@ data class CommentsUiState(
 )
 
 enum class NoteSortOrder(val displayName: String) {
-    NEWEST_FIRST("Mới nhất trước (Newest first)"),
-    OLDEST_FIRST("Cũ nhất trước (Oldest first)")
+    NEWEST_FIRST("Mới nhất trước (Newest)"),
+    OLDEST_FIRST("Cũ nhất trước (Oldest)"),
+    ALPHABETICAL("Bảng chữ cái A-Z (Alphabetical)")
+}
+
+enum class CommentSortOrder(val displayName: String) {
+    NEWEST_FIRST("Mới nhất trước (Newest)"),
+    OLDEST_FIRST("Cũ nhất trước (Oldest)"),
+    ALPHABETICAL("Bảng chữ cái A-Z (Alphabetical)")
 }
 
 class NotesViewModel(application: Application) : AndroidViewModel(application) {
@@ -110,7 +117,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         _rateLimitWarning.value = msg
     }
 
-    // Sort order for notes by creation date
+    // Sort order for notes
     val sortOrder = MutableStateFlow(NoteSortOrder.NEWEST_FIRST)
 
     fun setSortOrder(order: NoteSortOrder) {
@@ -118,10 +125,25 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun toggleSortOrder() {
-        sortOrder.value = if (sortOrder.value == NoteSortOrder.NEWEST_FIRST) {
-            NoteSortOrder.OLDEST_FIRST
-        } else {
-            NoteSortOrder.NEWEST_FIRST
+        sortOrder.value = when (sortOrder.value) {
+            NoteSortOrder.NEWEST_FIRST -> NoteSortOrder.OLDEST_FIRST
+            NoteSortOrder.OLDEST_FIRST -> NoteSortOrder.ALPHABETICAL
+            NoteSortOrder.ALPHABETICAL -> NoteSortOrder.NEWEST_FIRST
+        }
+    }
+
+    // Sort order for comments
+    val commentSortOrder = MutableStateFlow(CommentSortOrder.OLDEST_FIRST)
+
+    fun setCommentSortOrder(order: CommentSortOrder) {
+        commentSortOrder.value = order
+    }
+
+    fun toggleCommentSortOrder() {
+        commentSortOrder.value = when (commentSortOrder.value) {
+            CommentSortOrder.OLDEST_FIRST -> CommentSortOrder.NEWEST_FIRST
+            CommentSortOrder.NEWEST_FIRST -> CommentSortOrder.ALPHABETICAL
+            CommentSortOrder.ALPHABETICAL -> CommentSortOrder.OLDEST_FIRST
         }
     }
 
@@ -203,6 +225,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         val sorted = when (sort) {
             NoteSortOrder.NEWEST_FIRST -> filtered.sortedByDescending { it.createdAt }
             NoteSortOrder.OLDEST_FIRST -> filtered.sortedBy { it.createdAt }
+            NoteSortOrder.ALPHABETICAL -> filtered.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.title.trim() })
         }
 
         val pinned = sorted.filter { it.isPinned }
@@ -253,13 +276,14 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     private val _visibleCommentsLimit = MutableStateFlow(200)
     val visibleCommentsLimit: StateFlow<Int> = _visibleCommentsLimit.asStateFlow()
 
-    // Comments & Replies UI state with 200 items per page pagination
+    // Comments & Replies UI state with 200 items per page pagination and sorting
     val commentsUiState: StateFlow<CommentsUiState> = combine(
         _selectedNoteId.flatMapLatest { id ->
             if (id == null) flowOf(emptyList()) else repository.getComments(id)
         },
-        _visibleCommentsLimit
-    ) { allItems, limit ->
+        _visibleCommentsLimit,
+        commentSortOrder
+    ) { allItems, limit, sort ->
         val totalCount = allItems.size
         // Determine window of items to display:
         // By default, showing up to 'limit' items (e.g. the most recent 200 items).
@@ -279,14 +303,25 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         // Group replies by parentId
         val repliesByParent = replies.groupBy { it.parentId }
 
+        // Build comparators respecting sort order while keeping pinned at the top
+        val rootComparator = when (sort) {
+            CommentSortOrder.NEWEST_FIRST -> compareByDescending<CommentEntity> { it.isPinned }.thenByDescending { it.createdAt }
+            CommentSortOrder.OLDEST_FIRST -> compareByDescending<CommentEntity> { it.isPinned }.thenBy { it.createdAt }
+            CommentSortOrder.ALPHABETICAL -> compareByDescending<CommentEntity> { it.isPinned }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.content.trim() }
+        }
+
+        val replyComparator = when (sort) {
+            CommentSortOrder.NEWEST_FIRST -> compareByDescending<CommentEntity> { it.isPinned }.thenByDescending { it.createdAt }
+            CommentSortOrder.OLDEST_FIRST -> compareByDescending<CommentEntity> { it.isPinned }.thenBy { it.createdAt }
+            CommentSortOrder.ALPHABETICAL -> compareByDescending<CommentEntity> { it.isPinned }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.content.trim() }
+        }
+
         // Build threads:
-        // Pinned comments appear at the top
-        // Within each thread, pinned replies appear at the top
         val threads = roots
-            .sortedWith(compareByDescending<CommentEntity> { it.isPinned }.thenBy { it.createdAt })
+            .sortedWith(rootComparator)
             .map { root ->
                 val threadReplies = (repliesByParent[root.id] ?: emptyList())
-                    .sortedWith(compareByDescending<CommentEntity> { it.isPinned }.thenBy { it.createdAt })
+                    .sortedWith(replyComparator)
                 CommentWithReplies(comment = root, replies = threadReplies)
             }
 
