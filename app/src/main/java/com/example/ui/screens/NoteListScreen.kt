@@ -87,6 +87,7 @@ import com.example.ui.NoteSortOrder
 import com.example.ui.NotesViewModel
 import com.example.ui.components.ActivityTrendCard
 import com.example.ui.components.ConfirmDeleteDialog
+import com.example.ui.components.DailyCheckInCard
 import com.example.ui.components.DiamondGoalDialog
 import com.example.ui.components.DiamondProgressCard
 import com.example.ui.components.DiamondStoreDialog
@@ -400,7 +401,16 @@ fun NoteListScreen(
                     DiamondProgressCard(
                         rewardState = rewardState,
                         onClick = { showDiamondGoalDialog = true },
-                        onOpenStore = { showDiamondStoreDialog = true }
+                        onOpenStore = { showDiamondStoreDialog = true },
+                        onClaimCheckIn = { viewModel.claimDailyCheckIn() }
+                    )
+                }
+
+                // 3.5 Daily Check-In Card
+                item(key = "hdr_checkin", span = { GridItemSpan(maxLineSpan) }) {
+                    DailyCheckInCard(
+                        rewardState = rewardState,
+                        onClaimCheckIn = { viewModel.claimDailyCheckIn() }
                     )
                 }
 
@@ -777,6 +787,7 @@ fun NoteListScreen(
         DiamondGoalDialog(
             rewardState = rewardState,
             onOpenStore = { showDiamondStoreDialog = true },
+            onClaimCheckIn = { viewModel.claimDailyCheckIn() },
             onDismiss = { showDiamondGoalDialog = false }
         )
     }
@@ -788,6 +799,7 @@ fun NoteListScreen(
             onTopUp = { amount -> viewModel.topUpDiamonds(amount) },
             onActivatePackage = { tier -> viewModel.activateStorePackage(tier) },
             onTopUpAndActivate = { tier -> viewModel.topUpAndActivatePackage(tier) },
+            onClaimCheckIn = { viewModel.claimDailyCheckIn() },
             onDismiss = { showDiamondStoreDialog = false }
         )
     }
@@ -814,6 +826,8 @@ fun NoteListScreen(
         StreakDialog(
             streakState = streakState,
             onCreateNoteClicked = { viewModel.startCreateNote() },
+            onClaimDailyCheckIn = { viewModel.claimDailyCheckIn() },
+            hasCheckedInToday = rewardState.hasCheckedInToday,
             onDismiss = { showStreakDialog = false }
         )
     }

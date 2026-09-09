@@ -63,7 +63,8 @@ data class DiamondRewardState(
     val totalNotesCreatedAllTime: Int = 0,
     val totalCommentsAllTime: Int = 0,
     val isGoalCompleted: Boolean = false,
-    val currentTier: StorePackageTier = StorePackageTier.DEFAULT
+    val currentTier: StorePackageTier = StorePackageTier.DEFAULT,
+    val hasCheckedInToday: Boolean = false
 )
 
 class DiamondRewardManager(context: Context) {
@@ -73,6 +74,7 @@ class DiamondRewardManager(context: Context) {
     companion object {
         const val DIAMOND_GOAL = 8000
         const val ONE_MINUTE_MS = 60_000L
+        const val DAILY_CHECK_IN_DIAMONDS = 500
 
         private const val KEY_TOTAL_DIAMONDS = "key_total_diamonds"
         private const val KEY_TOTAL_NOTES_ALL_TIME = "key_total_notes_all_time"
@@ -80,6 +82,7 @@ class DiamondRewardManager(context: Context) {
         private const val KEY_DAY_KEY = "key_current_day"
         private const val KEY_TODAY_NOTES_COUNT = "key_today_notes_count"
         private const val KEY_ACTIVE_TIER_ID = "key_active_tier_id"
+        private const val KEY_LAST_CHECK_IN_DATE = "key_last_check_in_date"
     }
 
     private val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
@@ -105,6 +108,9 @@ class DiamondRewardManager(context: Context) {
             0
         }
 
+        val lastCheckIn = prefs.getString(KEY_LAST_CHECK_IN_DATE, "")
+        val hasCheckedInToday = (lastCheckIn == currentDay)
+
         pruneOldCommentTimestamps()
 
         return DiamondRewardState(
@@ -117,7 +123,8 @@ class DiamondRewardManager(context: Context) {
             totalNotesCreatedAllTime = totalNotes,
             totalCommentsAllTime = totalComments,
             isGoalCompleted = totalDiamonds >= DIAMOND_GOAL,
-            currentTier = tier
+            currentTier = tier,
+            hasCheckedInToday = hasCheckedInToday
         )
     }
 
@@ -214,6 +221,28 @@ class DiamondRewardManager(context: Context) {
 
         updateState()
         return true
+    }
+
+    /**
+     * Claim daily check-in reward (+500 diamonds). Returns amount claimed (500 or 0 if already claimed today).
+     */
+    @Synchronized
+    fun claimDailyCheckInReward(): Int {
+        val currentState = _rewardState.value
+        if (currentState.hasCheckedInToday) {
+            return 0
+        }
+
+        val todayKey = getTodayKey()
+        val newTotalDiamonds = currentState.totalDiamonds + DAILY_CHECK_IN_DIAMONDS
+
+        prefs.edit()
+            .putString(KEY_LAST_CHECK_IN_DATE, todayKey)
+            .putInt(KEY_TOTAL_DIAMONDS, newTotalDiamonds)
+            .apply()
+
+        updateState()
+        return DAILY_CHECK_IN_DIAMONDS
     }
 
     /**

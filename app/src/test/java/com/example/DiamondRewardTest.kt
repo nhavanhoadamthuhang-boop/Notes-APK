@@ -105,4 +105,21 @@ class DiamondRewardTest {
         assertEquals(64, state.maxCommentsPerMinute)
         assertEquals(12000, state.maxDailyNotes)
     }
+
+    @Test
+    fun claimDailyCheckInReward_claims500DiamondsOncePerDay() {
+        assertFalse(rewardManager.rewardState.value.hasCheckedInToday)
+
+        val claimed = rewardManager.claimDailyCheckInReward()
+        assertEquals(500, claimed)
+
+        val stateAfterClaim = rewardManager.rewardState.value
+        assertEquals(500, stateAfterClaim.totalDiamonds)
+        assertTrue(stateAfterClaim.hasCheckedInToday)
+
+        // Attempting second claim on same day returns 0 and keeps total at 500
+        val secondClaim = rewardManager.claimDailyCheckInReward()
+        assertEquals(0, secondClaim)
+        assertEquals(500, rewardManager.rewardState.value.totalDiamonds)
+    }
 }

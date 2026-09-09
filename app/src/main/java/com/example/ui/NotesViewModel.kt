@@ -448,7 +448,17 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Store operations
+    // Store & Check-in operations
+    fun claimDailyCheckIn() {
+        val claimedAmount = rewardManager.claimDailyCheckInReward()
+        if (claimedAmount > 0) {
+            _importExportMessage.value = "🎉 Điểm danh thành công! Bạn nhận được +$claimedAmount 💎 kim cương!"
+            recordInteraction()
+        } else {
+            _rateLimitWarning.value = "Bạn đã điểm danh hôm nay rồi! Hãy quay lại vào ngày mai để nhận thêm 500 💎 kim cương nhé."
+        }
+    }
+
     fun topUpDiamonds(amount: Int) {
         rewardManager.topUpDiamonds(amount)
         _importExportMessage.value = "Đã nạp thành công $amount 💎 vào tài khoản!"

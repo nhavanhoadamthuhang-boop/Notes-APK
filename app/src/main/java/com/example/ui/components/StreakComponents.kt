@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.MilitaryTech
@@ -120,6 +122,8 @@ fun StreakBadge(
 fun StreakDialog(
     streakState: StreakState,
     onCreateNoteClicked: () -> Unit,
+    onClaimDailyCheckIn: (() -> Unit)? = null,
+    hasCheckedInToday: Boolean = false,
     onDismiss: () -> Unit
 ) {
     val isInteracted = streakState.hasInteractedToday
@@ -259,6 +263,78 @@ fun StreakDialog(
                                             style = MaterialTheme.typography.bodySmall,
                                             color = if (isInteracted) Color(0xFF1B5E20) else Color(0xFFF57F17),
                                             fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // =========================================================
+                    // 1.5 DAILY CHECK-IN REWARD CARD (+500 💎)
+                    // =========================================================
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(18.dp),
+                            color = if (hasCheckedInToday) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color(0xFFFFF8E1),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, if (hasCheckedInToday) MaterialTheme.colorScheme.outlineVariant else Color(0xFFFFD54F)),
+                            modifier = Modifier.fillMaxWidth().testTag("streak_dialog_checkin_card")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier.size(38.dp).background(if (hasCheckedInToday) Color(0xFFE8F5E9) else Color(0xFFFFECB3), CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = if (hasCheckedInToday) Icons.Default.CheckCircle else Icons.Default.Diamond,
+                                            contentDescription = null,
+                                            tint = if (hasCheckedInToday) Color(0xFF2E7D32) else Color(0xFFFF8F00),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                    Column {
+                                        Text(
+                                            text = "Điểm Danh Mỗi Ngày: +500 💎",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = if (hasCheckedInToday) "Đã điểm danh hôm nay!" else "Điểm danh ngay để nhận +500 kim cương",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                if (!hasCheckedInToday && onClaimDailyCheckIn != null) {
+                                    Button(
+                                        onClick = onClaimDailyCheckIn,
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8F00)),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                    ) {
+                                        Text("Điểm danh", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    }
+                                } else {
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = Color(0xFFE8F5E9)
+                                    ) {
+                                        Text(
+                                            text = "Đã nhận",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF2E7D32),
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                         )
                                     }
                                 }

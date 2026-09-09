@@ -163,6 +163,7 @@ fun DiamondProgressCard(
     rewardState: DiamondRewardState,
     onClick: () -> Unit,
     onOpenStore: () -> Unit,
+    onClaimCheckIn: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val numberFormatter = NumberFormat.getNumberInstance(Locale.GERMANY)
@@ -263,7 +264,7 @@ fun DiamondProgressCard(
                             }
                         }
                         Text(
-                            text = "+1 💎 / ghi chú & cmt • Mục tiêu: 8.000 💎",
+                            text = "+1 💎/ghi chú & cmt • Điểm danh: +500 💎",
                             style = MaterialTheme.typography.bodySmall,
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -292,6 +293,56 @@ fun DiamondProgressCard(
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold
                     )
+                }
+            }
+
+            // Quick Daily Check-In Banner inside card if not checked in
+            if (!rewardState.hasCheckedInToday && onClaimCheckIn != null) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Surface(
+                    onClick = onClaimCheckIn,
+                    shape = RoundedCornerShape(12.dp),
+                    color = DiamondGold.copy(alpha = 0.15f),
+                    border = BorderStroke(1.dp, DiamondGold.copy(alpha = 0.8f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("banner_claim_checkin_inside_card")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Stars,
+                                contentDescription = null,
+                                tint = DiamondGold,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "Điểm danh hôm nay để nhận +500 💎!",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = DiamondGold
+                        ) {
+                            Text(
+                                text = "Điểm danh ngay",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -364,9 +415,158 @@ fun DiamondProgressCard(
 }
 
 @Composable
+fun DailyCheckInCard(
+    rewardState: DiamondRewardState,
+    onClaimCheckIn: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val hasCheckedIn = rewardState.hasCheckedInToday
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("card_daily_checkin"),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (hasCheckedIn)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            else
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (hasCheckedIn)
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            else
+                DiamondGold
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .background(
+                            color = if (hasCheckedIn) Color(0xFFE8F5E9) else DiamondGold.copy(alpha = 0.2f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (hasCheckedIn) Icons.Default.CheckCircle else Icons.Default.Stars,
+                        contentDescription = "Điểm danh mỗi ngày",
+                        tint = if (hasCheckedIn) Color(0xFF2E7D32) else DiamondGold,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "Điểm Danh Mỗi Ngày",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (hasCheckedIn) Color(0xFFC8E6C9) else DiamondGold
+                        ) {
+                            Text(
+                                text = "+500 💎",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (hasCheckedIn) Color(0xFF1B5E20) else Color.White,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Text(
+                        text = if (hasCheckedIn)
+                            "Bạn đã điểm danh hôm nay! Quay lại vào ngày mai để nhận thêm 500 💎."
+                        else
+                            "Bấm điểm danh để nhận ngay 500 viên kim cương miễn phí!",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 11.sp,
+                        color = if (hasCheckedIn) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            if (!hasCheckedIn) {
+                Button(
+                    onClick = onClaimCheckIn,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DiamondGold),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.testTag("btn_claim_daily_checkin")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Diamond,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Điểm danh",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                }
+            } else {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFE8F5E9)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color(0xFF2E7D32),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "Đã nhận",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun DiamondGoalDialog(
     rewardState: DiamondRewardState,
     onOpenStore: () -> Unit,
+    onClaimCheckIn: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     val numberFormatter = NumberFormat.getNumberInstance(Locale.GERMANY)
@@ -401,6 +601,14 @@ fun DiamondGoalDialog(
                     .testTag("dialog_diamond_summary"),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                // Daily Check-In Card
+                if (onClaimCheckIn != null) {
+                    DailyCheckInCard(
+                        rewardState = rewardState,
+                        onClaimCheckIn = onClaimCheckIn
+                    )
+                }
+
                 // Goal Card Box
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -531,6 +739,7 @@ fun DiamondStoreDialog(
     onTopUp: (Int) -> Unit,
     onActivatePackage: (StorePackageTier) -> Unit,
     onTopUpAndActivate: (StorePackageTier) -> Unit,
+    onClaimCheckIn: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     val numberFormatter = NumberFormat.getNumberInstance(Locale.GERMANY)
@@ -563,6 +772,14 @@ fun DiamondStoreDialog(
                     .testTag("dialog_diamond_store"),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                // Daily Check-In Card
+                if (onClaimCheckIn != null) {
+                    DailyCheckInCard(
+                        rewardState = rewardState,
+                        onClaimCheckIn = onClaimCheckIn
+                    )
+                }
+
                 // Balance Header Banner
                 Surface(
                     shape = RoundedCornerShape(14.dp),
