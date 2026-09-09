@@ -29,5 +29,9 @@ data class CommentEntity(
     val replyToAuthor: String? = null,
     val content: String,
     val isPinned: Boolean = false,
-    val createdAt: Long = System.currentTimeMillis()
-)
+    val createdAt: Long = System.currentTimeMillis(),
+    val deletedAt: Long? = null
+) {
+    val isDeleted: Boolean
+        get() = deletedAt != null
+}

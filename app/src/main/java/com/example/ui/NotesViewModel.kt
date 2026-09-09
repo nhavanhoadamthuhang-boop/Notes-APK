@@ -77,6 +77,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         repository = NoteRepository(db.noteDao(), db.commentDao())
         viewModelScope.launch {
             autoBackupManager.checkAndRunDailyBackup(repository)
+            repository.purgeExpiredTrash(rewardState.value.trashRetentionDays)
         }
         recordInteraction()
     }
@@ -132,6 +133,22 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     // Selected tag/label filter (null means All)
     val selectedTag = MutableStateFlow<String?>(null)
+
+    // Trash flows
+    val trashNotes: StateFlow<List<NoteEntity>> = repository.trashNotes
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val trashComments: StateFlow<List<CommentEntity>> = repository.trashComments
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val trashNotesCount: StateFlow<Int> = repository.trashNotesCount
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val trashCommentsCount: StateFlow<Int> = repository.trashCommentsCount
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val totalTrashCount: StateFlow<Int> = combine(trashNotesCount, trashCommentsCount) { n, c -> n + c }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // All notes from repository
     val allNotes: StateFlow<List<NoteEntity>> = repository.allNotes
@@ -372,10 +389,46 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteNote(noteId: Long) {
         viewModelScope.launch {
-            repository.deleteNote(noteId)
+            repository.moveNoteToTrash(noteId)
             if (_selectedNoteId.value == noteId) {
                 _selectedNoteId.value = null
             }
+            _importExportMessage.value = "Đã chuyển ghi chú vào Thùng rác (lưu trong ${rewardState.value.trashRetentionDays} ngày)"
+            recordInteraction()
+        }
+    }
+
+    fun restoreNote(noteId: Long) {
+        viewModelScope.launch {
+            repository.restoreNoteFromTrash(noteId)
+            _importExportMessage.value = "Đã khôi phục ghi chú thành công!"
+            recordInteraction()
+        }
+    }
+
+    fun permanentlyDeleteNote(noteId: Long) {
+        viewModelScope.launch {
+            repository.permanentlyDeleteNote(noteId)
+            if (_selectedNoteId.value == noteId) {
+                _selectedNoteId.value = null
+            }
+            _importExportMessage.value = "Đã xoá vĩnh viễn ghi chú."
+            recordInteraction()
+        }
+    }
+
+    fun restoreAllNotes() {
+        viewModelScope.launch {
+            repository.restoreAllNotesFromTrash()
+            _importExportMessage.value = "Đã khôi phục toàn bộ ghi chú từ Thùng rác!"
+            recordInteraction()
+        }
+    }
+
+    fun emptyTrashNotes() {
+        viewModelScope.launch {
+            repository.emptyTrashNotes()
+            _importExportMessage.value = "Đã dọn sạch thùng rác ghi chú."
             recordInteraction()
         }
     }
@@ -440,11 +493,61 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteComment(commentId: Long) {
         viewModelScope.launch {
-            repository.deleteComment(commentId)
+            repository.moveCommentToTrash(commentId)
             if (_replyingTo.value?.id == commentId) {
                 _replyingTo.value = null
             }
+            _importExportMessage.value = "Đã chuyển bình luận vào Thùng rác (lưu trong ${rewardState.value.trashRetentionDays} ngày)"
             recordInteraction()
+        }
+    }
+
+    fun restoreComment(commentId: Long) {
+        viewModelScope.launch {
+            repository.restoreCommentFromTrash(commentId)
+            _importExportMessage.value = "Đã khôi phục bình luận thành công!"
+            recordInteraction()
+        }
+    }
+
+    fun permanentlyDeleteComment(commentId: Long) {
+        viewModelScope.launch {
+            repository.permanentlyDeleteComment(commentId)
+            if (_replyingTo.value?.id == commentId) {
+                _replyingTo.value = null
+            }
+            _importExportMessage.value = "Đã xoá vĩnh viễn bình luận."
+            recordInteraction()
+        }
+    }
+
+    fun restoreAllComments() {
+        viewModelScope.launch {
+            repository.restoreAllCommentsFromTrash()
+            _importExportMessage.value = "Đã khôi phục toàn bộ bình luận từ Thùng rác!"
+            recordInteraction()
+        }
+    }
+
+    fun emptyTrashComments() {
+        viewModelScope.launch {
+            repository.emptyTrashComments()
+            _importExportMessage.value = "Đã dọn sạch thùng rác bình luận."
+            recordInteraction()
+        }
+    }
+
+    fun emptyAllTrash() {
+        viewModelScope.launch {
+            repository.emptyAllTrash()
+            _importExportMessage.value = "Đã dọn sạch toàn bộ thùng rác!"
+            recordInteraction()
+        }
+    }
+
+    fun purgeExpiredTrash() {
+        viewModelScope.launch {
+            repository.purgeExpiredTrash(rewardState.value.trashRetentionDays)
         }
     }
 

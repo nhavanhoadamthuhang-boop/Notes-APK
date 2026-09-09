@@ -14,8 +14,12 @@ data class NoteEntity(
     val updatedAt: Long = System.currentTimeMillis(),
     val colorIndex: Int = 0,
     val category: String = "",
-    val tags: String = ""
+    val tags: String = "",
+    val deletedAt: Long? = null
 ) {
+    val isDeleted: Boolean
+        get() = deletedAt != null
+
     val tagList: List<String>
         get() = tags.split(",")
             .map { it.trim().removePrefix("#") }

@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoDelete
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Comment
@@ -701,9 +702,13 @@ fun DiamondGoalDialog(
                         Text(
                             text = "• Giới hạn bình luận: ${rewardState.maxCommentsPerMinute} bình luận & phản hồi/phút (Hiện tại: ${rewardState.commentsInCurrentMinute})",
                             style = MaterialTheme.typography.bodySmall
-                        )
+                         )
                         Text(
                             text = "• Giới hạn tạo ghi chú: ${numberFormatter.format(rewardState.maxDailyNotes)} ghi chú/ngày (Hôm nay: ${numberFormatter.format(rewardState.notesCreatedToday)})",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "• Thời gian lưu thùng rác: ${rewardState.trashRetentionDays} ngày trước khi xoá vĩnh viễn",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -1031,6 +1036,17 @@ private fun StorePackageCard(
                     Icon(Icons.Default.NoteAdd, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                     Text(
                         text = "Giới hạn: ${numberFormatter.format(tier.maxDailyNotes)} ghi chú/ngày",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(Icons.Default.AutoDelete, contentDescription = null, tint = Color(0xFFE65100), modifier = Modifier.size(16.dp))
+                    Text(
+                        text = "Theo dõi thùng rác đã xóa gần đây trong vòng ${tier.trashRetentionDays} ngày trước khi bị xóa vĩnh viễn",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold
                     )

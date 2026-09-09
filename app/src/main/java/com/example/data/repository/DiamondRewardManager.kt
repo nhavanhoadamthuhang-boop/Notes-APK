@@ -15,6 +15,7 @@ enum class StorePackageTier(
     val diamondPrice: Int,
     val maxCommentsPerMinute: Int,
     val maxDailyNotes: Int,
+    val trashRetentionDays: Int,
     val badgeLabel: String,
     val description: String
 ) {
@@ -24,26 +25,29 @@ enum class StorePackageTier(
         diamondPrice = 0,
         maxCommentsPerMinute = 32,
         maxDailyNotes = 8_000,
-        badgeLabel = "Cơ bản",
-        description = "Giới hạn 32 bình luận & phản hồi/phút, Giới hạn 8.000 ghi chú/ngày"
+        trashRetentionDays = 60,
+        badgeLabel = "Cơ bản (Thùng rác 60 ngày)",
+        description = "Giới hạn 32 cmt/phút, 8.000 ghi chú/ngày • Theo dõi thùng rác đã xóa gần đây trong vòng 60 ngày trước khi bị xóa vĩnh viễn"
     ),
     PACKAGE_1(
         id = 1,
-        title = "Gói Nạp VIP 1 (8.000 💎)",
+        title = "Gói Nạp 1 (8.000 💎)",
         diamondPrice = 8_000,
         maxCommentsPerMinute = 64,
         maxDailyNotes = 12_000,
-        badgeLabel = "VIP 1 (64 cmt/p • 12k notes/ngày)",
-        description = "Chi phí: 8.000 💎 • Giới hạn 64 cmt/phút, 12.000 ghi chú/ngày"
+        trashRetentionDays = 120,
+        badgeLabel = "Gói 1 (Thùng rác 120 ngày)",
+        description = "Chi phí: 8.000 💎 • Giới hạn 64 cmt/phút, 12.000 ghi chú/ngày • Theo dõi thùng rác đã xóa gần đây trong vòng 120 ngày trước khi bị xóa vĩnh viễn"
     ),
     PACKAGE_2(
         id = 2,
-        title = "Gói Nạp VIP 2 (12.000 💎)",
+        title = "Gói Nạp 2 (12.000 💎)",
         diamondPrice = 12_000,
         maxCommentsPerMinute = 96,
         maxDailyNotes = 16_000,
-        badgeLabel = "VIP 2 (96 cmt/p • 16k notes/ngày)",
-        description = "Chi phí: 12.000 💎 • Giới hạn 96 cmt/phút, 16.000 ghi chú/ngày"
+        trashRetentionDays = 180,
+        badgeLabel = "Gói 2 (Thùng rác 180 ngày)",
+        description = "Chi phí: 12.000 💎 • Giới hạn 96 cmt/phút, 16.000 ghi chú/ngày • Theo dõi thùng rác đã xóa gần đây trong vòng 180 ngày trước khi bị xóa vĩnh viễn"
     );
 
     companion object {
@@ -65,7 +69,10 @@ data class DiamondRewardState(
     val isGoalCompleted: Boolean = false,
     val currentTier: StorePackageTier = StorePackageTier.DEFAULT,
     val hasCheckedInToday: Boolean = false
-)
+) {
+    val trashRetentionDays: Int
+        get() = currentTier.trashRetentionDays
+}
 
 class DiamondRewardManager(context: Context) {
     private val prefs: SharedPreferences =

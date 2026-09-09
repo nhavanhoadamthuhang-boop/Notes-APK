@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Forum
@@ -96,6 +97,7 @@ import com.example.ui.components.NoteEditorDialog
 import com.example.ui.components.SettingsDialog
 import com.example.ui.components.StreakBadge
 import com.example.ui.components.StreakDialog
+import com.example.ui.components.TrashManagerDialog
 import com.example.ui.theme.PinGold
 import com.example.ui.theme.PinGoldContainer
 import com.example.ui.util.DateUtils
@@ -117,10 +119,14 @@ fun NoteDetailScreen(
     val streakState by viewModel.streakState.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val activityStats by viewModel.activityStats.collectAsStateWithLifecycle()
+    val trashNotes by viewModel.trashNotes.collectAsStateWithLifecycle()
+    val trashComments by viewModel.trashComments.collectAsStateWithLifecycle()
+    val allNotes by viewModel.allNotes.collectAsStateWithLifecycle()
 
     var commentInput by remember { mutableStateOf("") }
     var authorNameInput by remember { mutableStateOf("Bạn") }
     var showAuthorEditDialog by remember { mutableStateOf(false) }
+    var showTrashDialog by remember { mutableStateOf(false) }
     var showDiamondGoalDialog by remember { mutableStateOf(false) }
     var showDiamondStoreDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
@@ -242,6 +248,14 @@ fun NoteDetailScreen(
                             }
                         )
                         DropdownMenuItem(
+                            text = { Text("Thùng rác & Đã xoá gần đây") },
+                            leadingIcon = { Icon(Icons.Default.DeleteSweep, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            onClick = {
+                                menuExpanded = false
+                                showTrashDialog = true
+                            }
+                        )
+                        DropdownMenuItem(
                             text = { Text("Đổi tên người gửi ($authorNameInput)") },
                             leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                             onClick = {
@@ -266,7 +280,7 @@ fun NoteDetailScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Xoá ghi chú này", color = MaterialTheme.colorScheme.error) },
+                            text = { Text("Chuyển vào Thùng rác", color = MaterialTheme.colorScheme.error) },
                             leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
                             onClick = {
                                 menuExpanded = false
@@ -874,9 +888,9 @@ fun NoteDetailScreen(
     // Confirm Delete Note Dialog
     if (showDeleteNoteConfirm) {
         ConfirmDeleteDialog(
-            title = "Xoá vĩnh viễn ghi chú?",
-            message = "Bạn có chắc chắn muốn xoá ghi chú \"${currentNote.title}\" cùng toàn bộ các bình luận và phản hồi liên quan không? Hành động này không thể hoàn tác.",
-            confirmButtonText = "Xoá ghi chú",
+            title = "Chuyển ghi chú vào Thùng rác?",
+            message = "Ghi chú \"${currentNote.title}\" sẽ được chuyển vào Thùng rác và lưu trữ trong ${rewardState.trashRetentionDays} ngày trước khi bị xoá vĩnh viễn. Bạn có thể khôi phục lại bất kỳ lúc nào từ Thùng rác.",
+            confirmButtonText = "Chuyển vào Thùng rác",
             onConfirm = {
                 showDeleteNoteConfirm = false
                 viewModel.deleteNote(currentNote.id)
@@ -889,9 +903,9 @@ fun NoteDetailScreen(
     val currentCommentToDelete = commentToDelete
     if (currentCommentToDelete != null) {
         ConfirmDeleteDialog(
-            title = "Xoá bình luận vĩnh viễn?",
-            message = "Bạn có chắc chắn muốn xoá bình luận này của \"${currentCommentToDelete.authorName}\"? Tất cả các phản hồi liên quan trong luồng cũng sẽ bị xoá vĩnh viễn.",
-            confirmButtonText = "Xoá bình luận",
+            title = "Chuyển bình luận vào Thùng rác?",
+            message = "Bình luận này của \"${currentCommentToDelete.authorName}\" và các phản hồi liên quan sẽ được chuyển vào Thùng rác và lưu trữ trong ${rewardState.trashRetentionDays} ngày trước khi bị xoá vĩnh viễn.",
+            confirmButtonText = "Chuyển vào Thùng rác",
             onConfirm = {
                 viewModel.deleteComment(currentCommentToDelete.id)
                 commentToDelete = null
@@ -904,14 +918,35 @@ fun NoteDetailScreen(
     val currentReplyToDelete = replyToDelete
     if (currentReplyToDelete != null) {
         ConfirmDeleteDialog(
-            title = "Xoá phản hồi vĩnh viễn?",
-            message = "Bạn có chắc chắn muốn xoá phản hồi này của \"${currentReplyToDelete.authorName}\" không? Hành động này không thể hoàn tác.",
-            confirmButtonText = "Xoá phản hồi",
+            title = "Chuyển phản hồi vào Thùng rác?",
+            message = "Phản hồi này của \"${currentReplyToDelete.authorName}\" sẽ được chuyển vào Thùng rác và lưu trữ trong ${rewardState.trashRetentionDays} ngày trước khi bị xoá vĩnh viễn.",
+            confirmButtonText = "Chuyển vào Thùng rác",
             onConfirm = {
                 viewModel.deleteComment(currentReplyToDelete.id)
                 replyToDelete = null
             },
             onDismiss = { replyToDelete = null }
+        )
+    }
+
+    // Trash & Recent Deleted Dialog
+    if (showTrashDialog) {
+        TrashManagerDialog(
+            trashNotes = trashNotes,
+            trashComments = trashComments,
+            allNotes = allNotes,
+            rewardState = rewardState,
+            onRestoreNote = { noteId -> viewModel.restoreNote(noteId) },
+            onPermanentlyDeleteNote = { noteId -> viewModel.permanentlyDeleteNote(noteId) },
+            onRestoreAllNotes = { viewModel.restoreAllNotes() },
+            onEmptyTrashNotes = { viewModel.emptyTrashNotes() },
+            onRestoreComment = { commentId -> viewModel.restoreComment(commentId) },
+            onPermanentlyDeleteComment = { commentId -> viewModel.permanentlyDeleteComment(commentId) },
+            onRestoreAllComments = { viewModel.restoreAllComments() },
+            onEmptyTrashComments = { viewModel.emptyTrashComments() },
+            onEmptyAllTrash = { viewModel.emptyAllTrash() },
+            onOpenStore = { showDiamondStoreDialog = true },
+            onDismiss = { showTrashDialog = false }
         )
     }
 

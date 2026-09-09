@@ -19,6 +19,10 @@ class NoteRepository(
 ) {
     val allNotes: Flow<List<NoteEntity>> = noteDao.getAllNotes()
     val allComments: Flow<List<CommentEntity>> = commentDao.getAllComments()
+    val trashNotes: Flow<List<NoteEntity>> = noteDao.getTrashNotes()
+    val trashComments: Flow<List<CommentEntity>> = commentDao.getTrashComments()
+    val trashNotesCount: Flow<Int> = noteDao.getTrashNotesCount()
+    val trashCommentsCount: Flow<Int> = commentDao.getTrashCommentsCount()
 
     fun getNote(id: Long): Flow<NoteEntity?> = noteDao.getNoteById(id)
 
@@ -29,6 +33,10 @@ class NoteRepository(
     suspend fun getAllNotesDirect(): List<NoteEntity> = noteDao.getAllNotesDirect()
 
     suspend fun getAllCommentsDirect(): List<CommentEntity> = commentDao.getAllCommentsDirect()
+
+    suspend fun getTrashNotesDirect(): List<NoteEntity> = noteDao.getTrashNotesDirect()
+
+    suspend fun getTrashCommentsDirect(): List<CommentEntity> = commentDao.getTrashCommentsDirect()
 
     suspend fun getNoteByIdDirect(id: Long): NoteEntity? = noteDao.getNoteByIdDirect(id)
 
@@ -61,8 +69,29 @@ class NoteRepository(
         noteDao.updateNotePinned(id, !currentPinned)
     }
 
-    suspend fun deleteNote(id: Long) {
+    suspend fun moveNoteToTrash(id: Long) {
+        val now = System.currentTimeMillis()
+        noteDao.setNoteDeletedAt(id, now)
+        commentDao.setCommentsByNoteDeletedAt(noteId = id, deletedAt = now)
+    }
+
+    suspend fun restoreNoteFromTrash(id: Long) {
+        noteDao.restoreNote(id)
+        commentDao.restoreCommentsByNoteId(id)
+    }
+
+    suspend fun permanentlyDeleteNote(id: Long) {
+        commentDao.deleteCommentAndReplies(id)
         noteDao.deleteNoteById(id)
+    }
+
+    suspend fun restoreAllNotesFromTrash() {
+        noteDao.restoreAllNotes()
+        commentDao.restoreAllComments()
+    }
+
+    suspend fun emptyTrashNotes() {
+        noteDao.emptyTrashNotes()
     }
 
     suspend fun insertComment(
@@ -96,8 +125,45 @@ class NoteRepository(
         )
     }
 
-    suspend fun deleteComment(id: Long) {
+    suspend fun moveCommentToTrash(id: Long) {
+        val now = System.currentTimeMillis()
+        commentDao.setCommentAndRepliesDeletedAt(id, now)
+    }
+
+    suspend fun restoreCommentFromTrash(id: Long) {
+        val comment = commentDao.getAllCommentsDirect().find { it.id == id } 
+            ?: commentDao.getTrashCommentsDirect().find { it.id == id }
+        if (comment != null) {
+            // If the parent note is in trash, restore parent note as well so the comment has a valid parent
+            val note = noteDao.getNoteByIdDirect(comment.noteId)
+            if (note?.isDeleted == true) {
+                noteDao.restoreNote(comment.noteId)
+            }
+        }
+        commentDao.restoreCommentAndReplies(id)
+    }
+
+    suspend fun permanentlyDeleteComment(id: Long) {
         commentDao.deleteCommentAndReplies(id)
+    }
+
+    suspend fun restoreAllCommentsFromTrash() {
+        commentDao.restoreAllComments()
+    }
+
+    suspend fun emptyTrashComments() {
+        commentDao.emptyTrashComments()
+    }
+
+    suspend fun emptyAllTrash() {
+        commentDao.emptyTrashComments()
+        noteDao.emptyTrashNotes()
+    }
+
+    suspend fun purgeExpiredTrash(retentionDays: Int) {
+        val cutoffTimestamp = System.currentTimeMillis() - (retentionDays.toLong() * 24L * 60L * 60L * 1000L)
+        commentDao.deleteTrashCommentsOlderThan(cutoffTimestamp)
+        noteDao.deleteTrashNotesOlderThan(cutoffTimestamp)
     }
 
     suspend fun importBackupData(backupData: BackupData, replaceExisting: Boolean): ImportSummary {

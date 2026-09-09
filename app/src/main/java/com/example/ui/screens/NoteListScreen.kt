@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Info
@@ -99,6 +100,7 @@ import com.example.ui.components.SettingsDialog
 import com.example.ui.components.StreakBadge
 import com.example.ui.components.StreakCalendarProgressBar
 import com.example.ui.components.StreakDialog
+import com.example.ui.components.TrashManagerDialog
 import com.example.ui.theme.PinGold
 
 private val DEFAULT_SUGGESTED_CATEGORIES = listOf(
@@ -132,8 +134,12 @@ fun NoteListScreen(
     val streakState by viewModel.streakState.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val activityStats by viewModel.activityStats.collectAsStateWithLifecycle()
+    val trashNotes by viewModel.trashNotes.collectAsStateWithLifecycle()
+    val trashComments by viewModel.trashComments.collectAsStateWithLifecycle()
+    val totalTrashCount by viewModel.totalTrashCount.collectAsStateWithLifecycle()
 
     var noteToDelete by remember { mutableStateOf<NoteEntity?>(null) }
+    var showTrashDialog by remember { mutableStateOf(false) }
     var showImportExportDialog by remember { mutableStateOf(false) }
     var showDiamondGoalDialog by remember { mutableStateOf(false) }
     var showDiamondStoreDialog by remember { mutableStateOf(false) }
@@ -249,6 +255,37 @@ fun NoteListScreen(
                         onClick = { showStreakDialog = true },
                         modifier = Modifier.padding(end = 4.dp)
                     )
+
+                    // Trash & Recent Deleted Button with Badge
+                    Box {
+                        IconButton(
+                            onClick = { showTrashDialog = true },
+                            modifier = Modifier.testTag("btn_open_trash")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = "Thùng rác & Đã xoá gần đây",
+                                tint = if (totalTrashCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        if (totalTrashCount > 0) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(top = 4.dp, end = 4.dp)
+                            ) {
+                                Text(
+                                    text = if (totalTrashCount > 99) "99+" else "$totalTrashCount",
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                )
+                            }
+                        }
+                    }
 
                     IconButton(
                         onClick = { showActivityTrendsCard = !showActivityTrendsCard },
@@ -752,14 +789,35 @@ fun NoteListScreen(
     val currentNoteToDelete = noteToDelete
     if (currentNoteToDelete != null) {
         ConfirmDeleteDialog(
-            title = "Xoá vĩnh viễn ghi chú?",
-            message = "Bạn có chắc chắn muốn xoá ghi chú \"${currentNoteToDelete.title}\" cùng toàn bộ các bình luận và phản hồi liên quan không? Hành động này không thể hoàn tác.",
-            confirmButtonText = "Xoá ghi chú",
+            title = "Chuyển ghi chú vào Thùng rác?",
+            message = "Ghi chú \"${currentNoteToDelete.title}\" sẽ được chuyển vào Thùng rác và lưu trữ trong ${rewardState.trashRetentionDays} ngày trước khi bị xoá vĩnh viễn. Bạn có thể khôi phục lại bất kỳ lúc nào từ Thùng rác.",
+            confirmButtonText = "Chuyển vào Thùng rác",
             onConfirm = {
                 viewModel.deleteNote(currentNoteToDelete.id)
                 noteToDelete = null
             },
             onDismiss = { noteToDelete = null }
+        )
+    }
+
+    // Trash & Recent Deleted Dialog
+    if (showTrashDialog) {
+        TrashManagerDialog(
+            trashNotes = trashNotes,
+            trashComments = trashComments,
+            allNotes = allNotes,
+            rewardState = rewardState,
+            onRestoreNote = { noteId -> viewModel.restoreNote(noteId) },
+            onPermanentlyDeleteNote = { noteId -> viewModel.permanentlyDeleteNote(noteId) },
+            onRestoreAllNotes = { viewModel.restoreAllNotes() },
+            onEmptyTrashNotes = { viewModel.emptyTrashNotes() },
+            onRestoreComment = { commentId -> viewModel.restoreComment(commentId) },
+            onPermanentlyDeleteComment = { commentId -> viewModel.permanentlyDeleteComment(commentId) },
+            onRestoreAllComments = { viewModel.restoreAllComments() },
+            onEmptyTrashComments = { viewModel.emptyTrashComments() },
+            onEmptyAllTrash = { viewModel.emptyAllTrash() },
+            onOpenStore = { showDiamondStoreDialog = true },
+            onDismiss = { showTrashDialog = false }
         )
     }
 
